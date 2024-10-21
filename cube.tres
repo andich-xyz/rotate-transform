@@ -1,0 +1,10 @@
+[gd_resource type="BoxMesh" load_steps=3 format=3 uid="uid://6jwcar2dw0rt"]
+
+[ext_resource type="Shader" uid="uid://ddepqqiwo4ogd" path="res://S_rotate_transform.tres" id="1_g7yiy"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_obdax"]
+render_priority = 0
+shader = ExtResource("1_g7yiy")
+
+[resource]
+material = SubResource("ShaderMaterial_obdax")

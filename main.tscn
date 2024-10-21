@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3 uid="uid://cipekobi34j25"]
+
+[ext_resource type="BoxMesh" uid="uid://6jwcar2dw0rt" path="res://cube.tres" id="1_2w7ei"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_coefq"]
+emission_shape = 1
+emission_sphere_radius = 1.0
+direction = Vector3(0, 1, 0)
+initial_velocity_min = 2.0
+initial_velocity_max = 5.0
+scale_min = 0.03
+scale_max = 0.1
+hue_variation_min = -1.0
+hue_variation_max = 1.0
+
+[node name="Node3D" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.47767, 0, 0, 0, 0.47767, 0, 0, 0, 0.47767, 0, 0, 1.50397)
+mesh = ExtResource("1_2w7ei")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+amount = 100
+lifetime = 3.0
+explosiveness = 0.96
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_coefq")
+draw_pass_1 = ExtResource("1_2w7ei")

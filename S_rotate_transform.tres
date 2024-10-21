@@ -1,0 +1,244 @@
+[gd_resource type="VisualShader" load_steps=19 format=3 uid="uid://ddepqqiwo4ogd"]
+
+[ext_resource type="Script" path="res://rotate_transform.gd" id="1_up67m"]
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_bkt0l"]
+input_name = "color"
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_2d7py"]
+default_input_values = [0, 0.0, 1, 10.0]
+operator = 2
+
+[sub_resource type="VisualShaderNodeColorFunc" id="VisualShaderNodeColorFunc_tvtxx"]
+expanded_output_ports = [0]
+function = 2
+
+[sub_resource type="VisualShaderNodeReroute" id="VisualShaderNodeReroute_xx1lh"]
+
+[sub_resource type="VisualShaderNodeReroute" id="VisualShaderNodeReroute_fggyx"]
+
+[sub_resource type="VisualShaderNodeReroute" id="VisualShaderNodeReroute_ank6y"]
+
+[sub_resource type="VisualShaderNodeReroute" id="VisualShaderNodeReroute_u7uig"]
+
+[sub_resource type="VisualShaderNodeReroute" id="VisualShaderNodeReroute_kkxt2"]
+
+[sub_resource type="VisualShaderNodeReroute" id="VisualShaderNodeReroute_lv8xj"]
+
+[sub_resource type="VisualShaderNodeCustom" id="VisualShaderNodeCustom_qr0g6"]
+default_input_values = [0, 1.0, 1, 0.0]
+initialized = true
+script = ExtResource("1_up67m")
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_mwnom"]
+input_name = "modelview_matrix"
+
+[sub_resource type="VisualShaderNodeTransformOp" id="VisualShaderNodeTransformOp_mhk83"]
+
+[sub_resource type="VisualShaderNodeTransformOp" id="VisualShaderNodeTransformOp_3voaw"]
+
+[sub_resource type="VisualShaderNodeCustom" id="VisualShaderNodeCustom_vp223"]
+default_input_values = [0, 1.0, 1, 0.0]
+initialized = true
+properties = "0,1;"
+script = ExtResource("1_up67m")
+
+[sub_resource type="VisualShaderNodeTransformOp" id="VisualShaderNodeTransformOp_0j145"]
+
+[sub_resource type="VisualShaderNodeCustom" id="VisualShaderNodeCustom_4ypx7"]
+default_input_values = [0, 1.0, 1, 0.0]
+initialized = true
+properties = "0,2;"
+script = ExtResource("1_up67m")
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_un1ma"]
+input_name = "color"
+
+[resource]
+code = "shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx;
+
+
+
+// RotateTransform
+
+float getTime(float speed, float offset) {
+	return fract(TIME * speed + offset) * 2.0 * PI;
+}
+
+mat4 getMatrix(float speed, float offset, int axis) {
+	float cosine = cos(getTime(speed, offset));
+	float sine = sin(getTime(speed, offset));
+	mat4 resultMat;
+	vec4 x_comp = vec4(1.0, 0.0, 0.0, 0.0);
+	vec4 y_comp = vec4(0.0, 1.0, 0.0, 0.0);
+	vec4 z_comp = vec4(0.0, 0.0, 1.0, 0.0);
+	vec4 w_comp = vec4(0.0, 0.0, 0.0, 1.0);
+	switch (axis) {
+		case 0:
+			x_comp = vec4(1.0, 0.0, 0.0, 0.0);
+			y_comp = vec4(0.0, cosine, -1.0 * sine, 0.0);
+			z_comp = vec4(0.0, sine, cosine, 0.0);
+			w_comp = vec4(0.0, 0.0, 0.0, 1.0);
+			mat4 resultMat = mat4(x_comp, y_comp, z_comp, w_comp);
+			return resultMat;
+		case 1:
+			x_comp = vec4(cosine, 0.0, sine, 0.0);
+			y_comp = vec4(0.0, 1.0, 0.0, 0.0);
+			z_comp = vec4(-1.0 * sine, 0.0, cosine, 0.0);
+			w_comp = vec4(0.0, 0.0, 0.0, 1.0);
+			mat4 resultMat = mat4(x_comp, y_comp, z_comp, w_comp);
+			return resultMat;
+		case 2:
+			x_comp = vec4(cosine, -1.0 * sine, 0.0, 0.0);
+			y_comp = vec4(sine, cosine, 0.0, 0.0);
+			z_comp = vec4(0.0, 0.0, 1.0, 0.0);
+			w_comp = vec4(0.0, 0.0, 0.0, 1.0);
+			mat4 resultMat = mat4(x_comp, y_comp, z_comp, w_comp);
+			return resultMat;
+	}
+	//mat4 resultMat = mat4(x_comp, y_comp, z_comp, w_comp);
+	//return resultMat;
+}
+	
+
+void vertex() {
+// Input:3
+	mat4 n_out3p0 = MODELVIEW_MATRIX;
+
+
+// Input:9
+	vec4 n_out9p0 = COLOR;
+
+
+	vec3 n_out11p0;
+// ColorFunc:11
+	{
+		vec3 c = vec3(n_out9p0.xyz);
+		vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+		vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+		vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+		float d = q.x - min(q.w, q.y);
+		float e = 1.0e-10;
+		n_out11p0 = vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+	}
+	float n_out11p1 = n_out11p0.r;
+
+
+// FloatOp:10
+	float n_in10p1 = 10.00000;
+	float n_out10p0 = n_out11p1 * n_in10p1;
+
+
+// Reroute:15
+	float n_out15p0 = n_out10p0;
+
+
+// Reroute:12
+	float n_out12p0 = n_out15p0;
+
+
+	mat4 n_out2p0;
+// RotateTransform:2
+	{
+		n_out2p0 = getMatrix(n_out12p0, n_out12p0, 0);
+	}
+
+
+// TransformOp:4
+	mat4 n_out4p0 = n_out3p0 * n_out2p0;
+
+
+// Reroute:16
+	float n_out16p0 = n_out15p0;
+
+
+// Reroute:13
+	float n_out13p0 = n_out16p0;
+
+
+	mat4 n_out6p0;
+// RotateTransform:6
+	{
+		n_out6p0 = getMatrix(n_out13p0, n_out13p0, 1);
+	}
+
+
+// TransformOp:5
+	mat4 n_out5p0 = n_out4p0 * n_out6p0;
+
+
+// Reroute:17
+	float n_out17p0 = n_out16p0;
+
+
+// Reroute:14
+	float n_out14p0 = n_out17p0;
+
+
+	mat4 n_out8p0;
+// RotateTransform:8
+	{
+		n_out8p0 = getMatrix(n_out14p0, n_out14p0, 2);
+	}
+
+
+// TransformOp:7
+	mat4 n_out7p0 = n_out5p0 * n_out8p0;
+
+
+// Output:0
+	MODELVIEW_MATRIX = n_out7p0;
+
+
+}
+
+void fragment() {
+// Input:2
+	vec4 n_out2p0 = COLOR;
+
+
+// Output:0
+	ALBEDO = vec3(n_out2p0.xyz);
+
+
+}
+"
+graph_offset = Vector2(-542.06, 11.7158)
+nodes/vertex/0/position = Vector2(760, 120)
+nodes/vertex/2/node = SubResource("VisualShaderNodeCustom_qr0g6")
+nodes/vertex/2/position = Vector2(-260, 520)
+nodes/vertex/3/node = SubResource("VisualShaderNodeInput_mwnom")
+nodes/vertex/3/position = Vector2(-340, 360)
+nodes/vertex/4/node = SubResource("VisualShaderNodeTransformOp_mhk83")
+nodes/vertex/4/position = Vector2(-40, 360)
+nodes/vertex/5/node = SubResource("VisualShaderNodeTransformOp_3voaw")
+nodes/vertex/5/position = Vector2(200, 360)
+nodes/vertex/6/node = SubResource("VisualShaderNodeCustom_vp223")
+nodes/vertex/6/position = Vector2(0, 520)
+nodes/vertex/7/node = SubResource("VisualShaderNodeTransformOp_0j145")
+nodes/vertex/7/position = Vector2(440, 360)
+nodes/vertex/8/node = SubResource("VisualShaderNodeCustom_4ypx7")
+nodes/vertex/8/position = Vector2(240, 520)
+nodes/vertex/9/node = SubResource("VisualShaderNodeInput_un1ma")
+nodes/vertex/9/position = Vector2(-1160, 680)
+nodes/vertex/10/node = SubResource("VisualShaderNodeFloatOp_2d7py")
+nodes/vertex/10/position = Vector2(-580, 680)
+nodes/vertex/11/node = SubResource("VisualShaderNodeColorFunc_tvtxx")
+nodes/vertex/11/position = Vector2(-840, 680)
+nodes/vertex/12/node = SubResource("VisualShaderNodeReroute_xx1lh")
+nodes/vertex/12/position = Vector2(-320, 580)
+nodes/vertex/13/node = SubResource("VisualShaderNodeReroute_fggyx")
+nodes/vertex/13/position = Vector2(-60, 580)
+nodes/vertex/14/node = SubResource("VisualShaderNodeReroute_ank6y")
+nodes/vertex/14/position = Vector2(180, 580)
+nodes/vertex/15/node = SubResource("VisualShaderNodeReroute_u7uig")
+nodes/vertex/15/position = Vector2(-380, 720)
+nodes/vertex/16/node = SubResource("VisualShaderNodeReroute_kkxt2")
+nodes/vertex/16/position = Vector2(-140, 720)
+nodes/vertex/17/node = SubResource("VisualShaderNodeReroute_lv8xj")
+nodes/vertex/17/position = Vector2(120, 720)
+nodes/vertex/connections = PackedInt32Array(3, 0, 4, 0, 4, 0, 5, 0, 6, 0, 5, 1, 5, 0, 7, 0, 7, 0, 0, 10, 8, 0, 7, 1, 9, 0, 11, 0, 11, 1, 10, 0, 12, 0, 2, 0, 12, 0, 2, 1, 2, 0, 4, 1, 13, 0, 6, 1, 13, 0, 6, 0, 14, 0, 8, 0, 14, 0, 8, 1, 10, 0, 15, 0, 15, 0, 12, 0, 16, 0, 13, 0, 15, 0, 16, 0, 17, 0, 14, 0, 16, 0, 17, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeInput_bkt0l")
+nodes/fragment/2/position = Vector2(40, 160)
+nodes/fragment/connections = PackedInt32Array(2, 0, 0, 0)
